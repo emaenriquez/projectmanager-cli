@@ -1,0 +1,131 @@
+# Example .project-hub-ignore file
+# This file follows a similar format to .gitignore
+
+# ============================================
+# Dependencies & Package Managers
+# ============================================
+node_modules
+.venv
+venv
+env
+vendor
+packages
+pnpm-lock.yaml
+yarn.lock
+
+# ============================================
+# Build Outputs
+# ============================================
+dist
+build
+out
+*.egg-info
+target
+bin
+obj
+*.o
+*.so
+*.dylib
+
+# ============================================
+# Development & IDE
+# ============================================
+.vscode
+.idea
+.sublime-project
+.sublime-workspace
+*.swp
+*.swo
+*~
+.vim
+.neovim
+.cache
+
+# ============================================
+# Environment & Configuration
+# ============================================
+.env
+.env.local
+.env.*.local
+.env.development.local
+.env.test.local
+.env.production.local
+.editorconfig
+
+# ============================================
+# Temporary & Log Files
+# ============================================
+*.log
+*.logs
+logs/
+tmp/
+temp/
+*.tmp
+
+# ============================================
+# Version Control
+# ============================================
+.git
+.gitignore
+.gitattributes
+.hg
+.svn
+
+# ============================================
+# Operating System Files
+# ============================================
+.DS_Store
+.AppleDouble
+.LSOverride
+Thumbs.db
+.Thumbs.db
+Desktop.ini
+
+# ============================================
+# Documentation & Tests
+# ============================================
+coverage
+.nyc_output
+.mocha_output
+
+# ============================================
+# Special Directories to Never Scan
+# ============================================
+# Use these to prevent scanning unnecessary directories
+.nuxt
+.next
+.vuepress
+.cache
+.serverless
+.fusebox
+.dynamodb
+.env.example
+
+# ============================================
+# Project-Specific Excludes
+# ============================================
+# Examples for different project types:
+# Docker
+.dockerignore
+Dockerfile
+
+# Kubernetes
+k8s
+.kube
+
+# AWS
+.aws
+sam-tests
+
+# ============================================
+# Negation Examples
+# ============================================
+# You can use ! to negate patterns and re-include directories
+# Example: exclude all .log files but keep error.log
+# *.log
+# !error.log
+
+# For more info on .project-hub-ignore:
+# - Patterns follow glob syntax: *, **, ?
+# - Lines starting with # are comments
+# - Use ! to negate patterns

@@ -1,0 +1,34 @@
+{
+  "app": {
+    "name": "Project Hub",
+    "version": "0.1.0"
+  },
+  "database": {
+    "filename": "~/.project-hub/projects.db"
+  },
+  "scanner": {
+    "depth": 3,
+    "patterns": [
+      "package.json",
+      "requirements.txt",
+      "Cargo.toml",
+      "go.mod",
+      "pom.xml",
+      "build.gradle",
+      "composer.json",
+      "pyproject.toml"
+    ]
+  },
+  "tools": {
+    "defaultEditor": "code",
+    "editors": ["code", "cursor", "nvim", "vim", "subl"]
+  },
+  "ui": {
+    "theme": "dark",
+    "itemsPerPage": 20
+  },
+  "logging": {
+    "level": "info",
+    "directory": "~/.project-hub/logs"
+  }
+}
