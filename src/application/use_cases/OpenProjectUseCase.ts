@@ -14,63 +14,128 @@ export class OpenProjectUseCase {
 
   public execute(projectId: string, toolName?: string): void {
     const project = this.projectRepo.findById(projectId);
-    
+
     if (!project) {
       throw new Error(`Project not found: ${projectId}`);
     }
 
     const command = this.getToolCommand(toolName);
-    
+
     if (!command) {
       throw new Error(`Could not determine command for tool: ${toolName || 'default editor'}`);
     }
 
-    // Update last_opened timestamp
     project.last_opened = new Date().toISOString();
     this.projectRepo.update(project);
 
-    // Open tool
     this.spawnProcess(command, project.path);
   }
 
   private getToolCommand(toolName?: string): string | undefined {
-    if (toolName) {
-      // Find specific tool logic could be elaborated here
-      // For simplicity, map some common tools
-      const toolMap: Record<string, string> = {
-        'vscode': 'code',
-        'code': 'code',
-        'cursor': 'cursor',
-        'subl': 'subl',
-        'nvim': 'nvim'
-      };
-      return toolMap[toolName.toLowerCase()] || toolName;
+    if (toolName && ['system default', 'default', 'explorer'].includes(toolName.trim().toLowerCase())) {
+      return os.platform() === 'win32' ? 'explorer' : (os.platform() === 'darwin' ? 'open' : 'xdg-open');
     }
 
-    // Default to first available editor
     const editors = this.toolDetector.detectEditors();
-    if (editors.length > 0) {
-      // Very basic mapping for the detected name to command
-      const nameToCommand: Record<string, string> = {
-        'VS Code': 'code',
-        'Cursor': 'cursor',
-        'Sublime Text': 'subl',
-        'Neovim': 'nvim',
-        'Vim': 'vim'
-      };
-      return nameToCommand[editors[0].name];
+
+    if (toolName && toolName.trim().length > 0) {
+      const matchingEditor = editors.find((editor: any) =>
+        editor.name.toLowerCase() === toolName.trim().toLowerCase()
+        || editor.name.toLowerCase().replace(/\s+/g, '-') === toolName.trim().toLowerCase().replace(/\s+/g, '-')
+      );
+
+      const mapped = this.resolveToolCommand(toolName);
+
+      // If matchingEditor is a direct executable (like Antigravity.exe) and mapped is not a CLI command on PATH,
+      // use the full executable path
+      if (matchingEditor?.path && matchingEditor.path.toLowerCase().endsWith('.exe')) {
+        return matchingEditor.path;
+      }
+
+      if (mapped) {
+        return mapped;
+      }
+
+      if (matchingEditor?.path) {
+        return matchingEditor.path;
+      }
     }
-    
-    // Fallbacks
-    return os.platform() === 'win32' ? 'start' : 'open';
+
+    if (editors.length > 0) {
+      const defaultEditor = editors[0];
+      const mappedDefault = this.resolveToolCommand(defaultEditor.name);
+      if (defaultEditor.path && defaultEditor.path.toLowerCase().endsWith('.exe')) {
+        return defaultEditor.path;
+      }
+      if (mappedDefault) {
+        return mappedDefault;
+      }
+      if (defaultEditor.path) {
+        return defaultEditor.path;
+      }
+    }
+
+    return os.platform() === 'win32' ? 'explorer' : (os.platform() === 'darwin' ? 'open' : 'xdg-open');
+  }
+
+  private resolveToolCommand(toolName?: string): string | undefined {
+    if (!toolName || toolName.trim().length === 0) {
+      return undefined;
+    }
+
+    const normalized = toolName.trim().toLowerCase();
+    const compact = normalized.replace(/\s+/g, ' ').replace(/[-_]+/g, ' ');
+    const commandMap: Record<string, string> = {
+      'vscode': 'code',
+      'vs code': 'code',
+      'visual studio code': 'code',
+      'code': 'code',
+      'cursor': 'cursor',
+      'sublime text': 'subl',
+      'sublime': 'subl',
+      'subl': 'subl',
+      'neovim': 'nvim',
+      'nvim': 'nvim',
+      'vim': 'vim',
+      'kiro': 'kiro',
+      'kiro cli': 'kiro',
+      'kiro-cli': 'kiro',
+      'antigravity': 'antigravity',
+      'antigravity ide': 'antigravity-ide',
+      'antigravity-ide': 'antigravity-ide',
+      'antigravity cli': 'antigravity-ide',
+      'antigravity-cli': 'antigravity-ide'
+    };
+
+    return commandMap[normalized] || commandMap[compact] || toolName;
   }
 
   private spawnProcess(command: string, projectPath: string): void {
     const isWindows = os.platform() === 'win32';
-    
+
     try {
       if (isWindows) {
-        const child = spawn(`${command} "${projectPath}"`, {
+        if (command.toLowerCase() === 'explorer' || command.toLowerCase() === 'explorer.exe') {
+          const child = spawn('explorer.exe', [projectPath], {
+            detached: true,
+            stdio: 'ignore'
+          });
+          child.unref();
+          return;
+        }
+
+        if (command.toLowerCase().endsWith('.exe')) {
+          const child = spawn(command, [projectPath], {
+            detached: true,
+            stdio: 'ignore',
+            shell: false
+          });
+          child.unref();
+          return;
+        }
+
+        // For CLI commands (code, kiro, antigravity-ide, etc.)
+        const child = spawn(command, [projectPath], {
           detached: true,
           stdio: 'ignore',
           shell: true

@@ -14,10 +14,14 @@ export class ProjectListView {
       parent,
       top: 0,
       left: 0,
-      width: '50%',
+      width: '45%',
       height: '100%',
       border: {
         type: 'line'
+      },
+      padding: {
+        left: 1,
+        right: 1
       },
       style: {
         bg: 'black',
@@ -34,7 +38,11 @@ export class ProjectListView {
       keys: true,
       vi: true,
       interactive: true,
-      label: ' Projects '
+      label: ' Projects ',
+      tags: true,
+      scrollbar: {
+        ch: ' '
+      }
     });
   }
 

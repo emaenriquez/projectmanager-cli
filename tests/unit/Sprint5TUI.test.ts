@@ -94,6 +94,19 @@ describe('Sprint 5 TUI Features', () => {
       app = new TUIApplication();
     });
 
+    it('should render a split project layout with a cyan project list and a dark detail panel', () => {
+      const list = (app as any).projectListView.list;
+      const detail = (app as any).detailsPanel.box;
+
+      expect(list.left).toBe(0);
+      expect(list.width).toBeGreaterThan(30);
+      expect(list.style.border.fg).toBe('cyan');
+
+      expect(detail.left).toBeGreaterThan(0);
+      expect(detail.width).toBeGreaterThan(30);
+      expect(detail.style.border.fg).toBe('green');
+    });
+
     it('should contain all Sprint 5 shortcuts in help bar', () => {
       const requiredHelpText = '↑/↓: Navigate | Enter/D: Details | A: Add | S: Scan | F: Search | *: Fav | T: Tag | O: Open | X: Del | Q: Quit';
       const screenInstance = (app as any).screenManager.getScreen();
@@ -248,7 +261,13 @@ describe('Sprint 5 TUI Features', () => {
       const screenInstance = (app as any).screenManager.getScreen();
       screenInstance.emit('key o', 'o', { name: 'o', full: 'o' });
 
-      expect(executeSpy).toHaveBeenCalledWith('p-open');
+      // Find tool list if rendered and press enter
+      const toolList = screenInstance.children.find((c: any) => c.type === 'list' && c !== (app as any).projectListView.list);
+      if (toolList) {
+        toolList.emit('key enter', 'enter', { name: 'enter' });
+      }
+
+      expect(executeSpy).toHaveBeenCalledWith('p-open', expect.anything());
       expect(showMessageSpy).toHaveBeenCalledWith(
         expect.stringContaining('Project Opened'),
         expect.stringContaining('Open Me'),
@@ -290,8 +309,8 @@ describe('Sprint 5 TUI Features', () => {
 
       expect(executeSpy).toHaveBeenCalledWith('p-del');
       expect(showMessageSpy).toHaveBeenCalledWith(
-        expect.stringContaining('Project Deleted'),
-        expect.stringContaining('Delete Me'),
+        expect.stringContaining('Deleted'),
+        expect.stringContaining('Delete Me removed.'),
         expect.any(Function)
       );
 

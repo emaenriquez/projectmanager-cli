@@ -344,14 +344,124 @@ export class TUIApplication {
       const selectedProject = this.getSelectedProject();
       if (!selectedProject) return;
 
-      try {
-        const { OpenProjectUseCase } = require('../../application/use_cases/OpenProjectUseCase');
-        const openUseCase = new OpenProjectUseCase();
-        openUseCase.execute(selectedProject.id);
-        this.showMessage('{green-fg}Project Opened{/green-fg}', `Opened ${selectedProject.name}`, () => this.run());
-      } catch (error: any) {
-        this.showMessage('{red-fg}Error{/red-fg}', `Error opening project: ${error.message}`);
+      const { ToolDetector } = require('../../domain/services/ToolDetector');
+      const toolDetector = new ToolDetector();
+      const detectedEditors = toolDetector.detectEditors();
+
+      // Complete list of known supported tools
+      const allKnownTools: string[] = [
+        'VS Code',
+        'Cursor',
+        'Sublime Text',
+        'Neovim',
+        'Vim',
+        'Kiro',
+        'Antigravity IDE',
+        'Antigravity',
+        'System Default'
+      ];
+
+      // Build options list: detected tools first, followed by remaining known tools
+      const detectedNames = detectedEditors.map((e: { name: string }) => e.name);
+      const combinedToolNames: string[] = [...detectedNames];
+
+      for (const tool of allKnownTools) {
+        if (!combinedToolNames.some(existing => existing.toLowerCase() === tool.toLowerCase())) {
+          combinedToolNames.push(tool);
+        }
       }
+
+      // Format items with clear indicators
+      const toolItems = combinedToolNames.map((name: string) => {
+        const isDetected = detectedNames.some((d: string) => d.toLowerCase() === name.toLowerCase());
+        if (name === 'System Default') {
+          return {
+            label: `{cyan-fg}◆ System Default{/cyan-fg} (File Explorer)`,
+            tool: 'System Default'
+          };
+        }
+        if (isDetected) {
+          return {
+            label: `{green-fg}● ${name}{/green-fg}`,
+            tool: name
+          };
+        }
+        return {
+          label: `  ${name}`,
+          tool: name
+        };
+      });
+
+      // Calculate explicit height to show all tools without clipping
+      const listHeight = Math.min(toolItems.length + 2, 14);
+
+      const editorList = blessed.list({
+        parent: this.screenManager.getScreen(),
+        border: 'line',
+        height: listHeight,
+        width: '50%',
+        top: 'center',
+        left: 'center',
+        label: ' {bold}{blue-fg} Choose Tool / Editor {/blue-fg}{/bold} ',
+        tags: true,
+        keys: true,
+        vi: true,
+        mouse: true,
+        scrollable: true,
+        alwaysScroll: true,
+        scrollbar: {
+          ch: ' ',
+          track: {
+            bg: 'black'
+          },
+          style: {
+            inverse: true
+          }
+        },
+        items: toolItems.map(item => item.label),
+        selectedBg: 'blue',
+        selectedFg: 'white',
+        style: {
+          bg: 'black',
+          fg: 'white',
+          border: {
+            fg: 'cyan'
+          },
+          selected: {
+            bg: 'blue',
+            fg: 'white',
+            bold: true
+          }
+        }
+      });
+
+      const closeEditorList = () => {
+        editorList.destroy();
+        this.screenManager.render();
+      };
+
+      editorList.on('select item', () => {
+        this.screenManager.render();
+      });
+
+      editorList.key(['escape'], () => closeEditorList());
+      editorList.key(['enter'], () => {
+        const selectedIndex = (editorList as any).selected ?? 0;
+        const selectedTool = toolItems[selectedIndex]?.tool || combinedToolNames[0] || 'VS Code';
+        closeEditorList();
+        try {
+          const { OpenProjectUseCase } = require('../../application/use_cases/OpenProjectUseCase');
+          const openUseCase = new OpenProjectUseCase();
+          openUseCase.execute(selectedProject.id, selectedTool);
+          this.showMessage('{green-fg}Project Opened{/green-fg}', `Opened ${selectedProject.name} with ${selectedTool}`, () => this.run());
+        } catch (error: any) {
+          this.showMessage('{red-fg}Error{/red-fg}', `Error opening project: ${error.message}`);
+        }
+      });
+
+      editorList.focus();
+      editorList.select(0);
+      this.screenManager.render();
     });
 
     // Delete project

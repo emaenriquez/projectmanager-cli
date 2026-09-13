@@ -291,6 +291,10 @@ describe('ToolDetector', () => {
       expect(editorNames).toContain('Neovim');
       expect(editorNames).toContain('Vim');
       expect(editorNames).toContain('Sublime Text');
+      expect(editorNames).toContain('Kiro');
+      expect(editorNames).toContain('Kiro CLI');
+      expect(editorNames).toContain('Antigravy');
+      expect(editorNames).toContain('Antigravy CLI');
     });
 
     it('should categorize runtimes correctly', () => {

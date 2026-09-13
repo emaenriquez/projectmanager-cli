@@ -29,11 +29,17 @@ export class DetailsPanel {
     this.box = blessed.box({
       parent,
       top: 0,
-      left: '50%',
-      width: '50%',
+      left: '45%',
+      width: '55%',
       height: '100%',
       border: {
         type: 'line'
+      },
+      padding: {
+        left: 1,
+        right: 1,
+        top: 1,
+        bottom: 1
       },
       style: {
         bg: 'black',
