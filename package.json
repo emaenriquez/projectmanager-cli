@@ -1,5 +1,5 @@
 {
-  "name": "projectmanager-cli",
+  "name": "@emaenriquez/projectmanager-cli",
   "version": "0.1.0",
   "description": "A CLI/TUI application for managing development projects across multiple technologies",
   "main": "dist/index.js",
