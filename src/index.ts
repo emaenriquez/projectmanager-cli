@@ -1,3 +1,4 @@
+#!/usr/bin/env node
 /**
  * Project Hub - CLI/TUI application for managing development projects
  */

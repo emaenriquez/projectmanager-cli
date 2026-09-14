@@ -1,11 +1,19 @@
 {
-  "name": "project-hub",
+  "name": "projectmanager-cli",
   "version": "0.1.0",
   "description": "A CLI/TUI application for managing development projects across multiple technologies",
   "main": "dist/index.js",
   "type": "commonjs",
+  "bin": {
+    "projectmanager-cli": "./dist/index.js",
+    "project-hub": "./dist/index.js"
+  },
+  "files": [
+    "dist"
+  ],
   "scripts": {
     "build": "tsc",
+    "prepublishOnly": "npm run build",
     "dev": "ts-node src/index.ts",
     "start": "node dist/index.js",
     "test": "jest",
